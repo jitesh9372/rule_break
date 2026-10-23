@@ -20,9 +20,14 @@ namespace RuleBreak.UI
         [Header("Energy Gauge")]
         [SerializeField] private Slider energySlider;
         [SerializeField] private Text   energyText;
+        [SerializeField] private CircularGauge energyGauge;
 
         [Header("Reality Integrity")]
         [SerializeField] private Text integrityText;
+        [SerializeField] private CircularGauge integrityGauge;
+
+        [Header("Radar Objective Display")]
+        [SerializeField] private RadarObjectiveDisplay radarDisplay;
 
         [Header("Memory Fragments")]
         [SerializeField] private Text fragmentText;
@@ -45,6 +50,10 @@ namespace RuleBreak.UI
         [SerializeField] private Text abilityTText;
         [SerializeField] private Text abilityEText;
         [SerializeField] private Text abilityRText;
+        [SerializeField] private RadialAbilityIndicator abilityGIndicator;
+        [SerializeField] private RadialAbilityIndicator abilityTIndicator;
+        [SerializeField] private RadialAbilityIndicator abilityEIndicator;
+        [SerializeField] private RadialAbilityIndicator abilityRIndicator;
 
         [Header("Glitch Effect")]
         [SerializeField] private float glitchIntensity = 0f;
@@ -115,12 +124,14 @@ namespace RuleBreak.UI
             _lastEnergy = current;
             if (energySlider != null) energySlider.value = current / max;
             if (energyText   != null) energyText.text    = $"ENERGY: {Mathf.RoundToInt(current)} / {Mathf.RoundToInt(max)}";
+            if (energyGauge  != null) energyGauge.SetValue(current, max);
             RefreshAbilityIndicators();
         }
 
         // ── Integrity ─────────────────────────────────────────────────────────
         private void UpdateIntegrity(float value)
         {
+            if (integrityGauge != null) integrityGauge.SetValue(value, 100f);
             if (integrityText == null) return;
             integrityText.text = $"REALITY INTEGRITY: {Mathf.RoundToInt(value)}%";
 
@@ -140,6 +151,7 @@ namespace RuleBreak.UI
                 dimensionText.text = r == Reality.A ? "REALITY: ALPHA [E]" : "REALITY: BETA [E]";
                 dimensionText.color = r == Reality.A ? ColCyan : ColViolet;
             }
+            abilityEIndicator?.TriggerActivationPulse();
         }
 
         // ── Ability Modules Highlight ─────────────────────────────────────────
@@ -151,11 +163,12 @@ namespace RuleBreak.UI
                 bool canAfford = _lastEnergy >= 20f;
                 abilityGText.color = canAfford ? ColCyan : ColDim;
             }
+            if (abilityGIndicator != null) abilityGIndicator.UpdateEnergyStatus(_lastEnergy);
 
             // [T] Time Freeze (cost 25)
+            bool isFrozen = TimeFreezeManager.Instance != null && TimeFreezeManager.Instance.IsFrozen;
             if (abilityTText != null)
             {
-                bool isFrozen = TimeFreezeManager.Instance != null && TimeFreezeManager.Instance.IsFrozen;
                 if (isFrozen)
                 {
                     abilityTText.color = Color.white;
@@ -168,11 +181,16 @@ namespace RuleBreak.UI
                     abilityTText.text = "[T] FREEZE (25)";
                 }
             }
+            if (abilityTIndicator != null)
+            {
+                abilityTIndicator.UpdateEnergyStatus(_lastEnergy);
+                if (isFrozen) abilityTIndicator.SetState(true);
+            }
 
             // [E] Dimension (cost 15)
+            bool isDimB = DimensionManager.Instance != null && DimensionManager.Instance.CurrentReality == Reality.B;
             if (abilityEText != null)
             {
-                bool isDimB = DimensionManager.Instance != null && DimensionManager.Instance.CurrentReality == Reality.B;
                 if (isDimB)
                 {
                     abilityEText.color = ColViolet;
@@ -185,6 +203,11 @@ namespace RuleBreak.UI
                     abilityEText.text = "[E] REALITY: ALPHA";
                 }
             }
+            if (abilityEIndicator != null)
+            {
+                abilityEIndicator.UpdateEnergyStatus(_lastEnergy);
+                if (isDimB) abilityEIndicator.SetState(true);
+            }
 
             // [R] Rule Corruption (cost 30)
             if (abilityRText != null)
@@ -192,6 +215,7 @@ namespace RuleBreak.UI
                 bool canAfford = _lastEnergy >= 30f;
                 abilityRText.color = canAfford ? new Color(1f, 0.24f, 0.6f) : ColDim;
             }
+            if (abilityRIndicator != null) abilityRIndicator.UpdateEnergyStatus(_lastEnergy);
         }
 
         // ── Fragments ─────────────────────────────────────────────────────────
@@ -246,6 +270,15 @@ namespace RuleBreak.UI
         public void ShowCheckpointActivated()
         {
             ShowSystemMessage("► CHECKPOINT SYNCHRONIZED — RESPAWN LOGGED", 2.5f);
+        }
+
+        // ── Direct Ability Pulse Feedback ─────────────────────────────────────
+        public void PulseAbilityIndicator(string key)
+        {
+            if (key == "G") abilityGIndicator?.TriggerActivationPulse();
+            else if (key == "T") abilityTIndicator?.TriggerActivationPulse();
+            else if (key == "E") abilityEIndicator?.TriggerActivationPulse();
+            else if (key == "R") abilityRIndicator?.TriggerActivationPulse();
         }
     }
 }

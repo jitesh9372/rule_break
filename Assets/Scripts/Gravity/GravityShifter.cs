@@ -7,6 +7,8 @@ using UnityEngine;
 using RuleBreak.Player;
 using RuleBreak.Level;
 using RuleBreak.Audio;
+using RuleBreak.Effects;
+using RuleBreak.UI;
 
 namespace RuleBreak.Gravity
 {
@@ -94,6 +96,8 @@ namespace RuleBreak.Gravity
 
             AudioManager.Instance?.PlayGravityShift();
             GetComponent<CapsuleProceduralAnimator>()?.TriggerAbilityPulse();
+            SciFiEffectSystem.Instance?.PlayGravityPulse(transform.position, newUp);
+            HUDController.Instance?.PulseAbilityIndicator("G");
 
             if (debugLog) Debug.Log($"GravityShifter: sign={_gravitySign}, down={newDown}");
         }

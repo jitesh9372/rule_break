@@ -243,6 +243,7 @@ public static class RuleBreakSetup
         CreateManagerIfMissing<RuleBreak.Corruption.RuleCorruptionManager>("RuleCorruptionManager");
         CreateManagerIfMissing<RuleBreak.Dimension.DimensionManager>("DimensionManager");
         CreateManagerIfMissing<RuleBreak.Audio.AudioManager>("AudioManager");
+        CreateManagerIfMissing<RuleBreak.Effects.SciFiEffectSystem>("SciFiEffectSystem");
 
         // Build in-game UI Canvas (HUD + Pause + LevelComplete)
         GameplayUIBuilder.BuildGameplayCanvas(levelIndex, levelName, objective);

@@ -70,9 +70,15 @@ namespace RuleBreak.Corruption
 
             bool success = CurrentTarget.TryCorrupt();
             if (success)
+            {
+                RuleBreak.Effects.SciFiEffectSystem.Instance?.PlayCorruptionGlitch(CurrentTarget.transform.position);
+                RuleBreak.UI.HUDController.Instance?.PulseAbilityIndicator("R");
                 Debug.Log($"Rule Corruption applied to: {CurrentTarget.name} → {CurrentTarget.Type}");
+            }
             else
+            {
                 Debug.Log("Rule Corruption: Object cannot be further corrupted.");
+            }
         }
     }
 }

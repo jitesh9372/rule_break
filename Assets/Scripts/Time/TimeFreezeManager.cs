@@ -8,6 +8,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using RuleBreak.Level;
 using RuleBreak.Audio;
+using RuleBreak.Effects;
+using RuleBreak.UI;
 
 namespace RuleBreak.Time
 {
@@ -62,6 +64,8 @@ namespace RuleBreak.Time
             _frozen = true;
             foreach (var f in _freezables) f?.DoFreeze();
             AudioManager.Instance?.PlayTimeFreeze();
+            SciFiEffectSystem.Instance?.PlayTimeFreeze(true);
+            HUDController.Instance?.PulseAbilityIndicator("T");
             OnFreezeStateChanged?.Invoke(true);
 
             if (freezeDuration > 0f)
@@ -79,6 +83,7 @@ namespace RuleBreak.Time
             _frozen = false;
             foreach (var f in _freezables) f?.DoUnfreeze();
             AudioManager.Instance?.PlayTimeUnfreeze();
+            SciFiEffectSystem.Instance?.PlayTimeFreeze(false);
             OnFreezeStateChanged?.Invoke(false);
             Debug.Log("Time Freeze: OFF");
         }

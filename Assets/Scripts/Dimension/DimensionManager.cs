@@ -57,6 +57,13 @@ namespace RuleBreak.Dimension
             AudioManager.Instance?.PlayDimensionShift();
             GameProgressManager.Instance?.RegisterDimensionUse();
             OnDimensionChanged?.Invoke(_currentReality);
+            
+            // Visual pulse and HUD feedback
+            var cam = Camera.main;
+            Vector3 fxPos = cam != null ? cam.transform.position + cam.transform.forward * 2f : transform.position;
+            RuleBreak.Effects.SciFiEffectSystem.Instance?.PlayDimensionShift(_currentReality, fxPos);
+            RuleBreak.UI.HUDController.Instance?.PulseAbilityIndicator("E");
+
             Debug.Log($"Dimension shifted to {_currentReality}");
         }
 

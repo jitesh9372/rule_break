@@ -30,6 +30,7 @@ namespace RuleBreak.Player
 
             if (activeVisual != null) activeVisual.SetActive(true);
 
+            RuleBreak.Effects.SciFiEffectSystem.Instance?.PlayCheckpointBeacon(spawnPos);
             RuleBreak.UI.HUDController.Instance?.ShowCheckpointActivated();
             Debug.Log("Checkpoint activated at " + spawnPos);
         }

@@ -51,6 +51,7 @@ namespace RuleBreak.Gameplay
             // Show story message in HUD
             HUDController.Instance?.ShowSystemMessage(storyMessage, 4f);
             HUDController.Instance?.ShowFragmentNotification(CollectedCount, TotalInScene);
+            RuleBreak.Effects.SciFiEffectSystem.Instance?.PlayFragmentPickup(transform.position);
 
             Debug.Log($"Memory Fragment [{fragmentIndex}] collected! {CollectedCount}/{TotalInScene}");
             Destroy(gameObject);

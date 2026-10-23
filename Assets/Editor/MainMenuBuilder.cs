@@ -77,6 +77,17 @@ public static class MainMenuBuilder
 
         canvasGO.AddComponent<GraphicRaycaster>();
 
+        // Background subtle scanline overlay
+        var scanlineGO = new GameObject("ScanlineOverlay");
+        scanlineGO.transform.SetParent(canvasGO.transform, false);
+        var srt = scanlineGO.AddComponent<RectTransform>();
+        srt.anchorMin = Vector2.zero;
+        srt.anchorMax = Vector2.one;
+        srt.sizeDelta = Vector2.zero;
+        var sRaw = scanlineGO.AddComponent<RawImage>();
+        sRaw.raycastTarget = false;
+        scanlineGO.AddComponent<ScanlineOverlay>();
+
         // Background subtle vignette/overlay
         MakePanel("VignetteOverlay", canvasGO, new Color(0.02f, 0.043f, 0.078f, 0.75f),
                   Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f));
@@ -276,7 +287,15 @@ public static class MainMenuBuilder
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = size;
         var img = go.AddComponent<Image>();
-        img.color = col;
+        if (col != Color.clear)
+        {
+            img.sprite = SciFiProceduralTextures.GetGlassPanel(64, 64, 2, col, new Color(col.r * 1.5f + 0.05f, col.g * 1.5f + 0.15f, col.b * 1.5f + 0.25f, 0.75f));
+            img.type = Image.Type.Sliced;
+        }
+        else
+        {
+            img.color = Color.clear;
+        }
         Undo.RegisterCreatedObjectUndo(go, "Create " + name);
         return go;
     }
@@ -294,15 +313,26 @@ public static class MainMenuBuilder
         rt.sizeDelta = size;
 
         var img = go.AddComponent<Image>();
-        img.color = new Color(accentCol.r * 0.15f, accentCol.g * 0.15f, accentCol.b * 0.15f, 0.9f);
+        img.sprite = SciFiProceduralTextures.GetGlassPanel(64, 64, 2,
+            new Color(accentCol.r * 0.12f, accentCol.g * 0.12f, accentCol.b * 0.12f, 0.92f),
+            new Color(accentCol.r * 0.75f, accentCol.g * 0.75f, accentCol.b * 0.75f, 0.7f));
+        img.type = Image.Type.Sliced;
 
         var btn = go.AddComponent<Button>();
         var colors = btn.colors;
-        colors.normalColor = img.color;
-        colors.highlightedColor = new Color(accentCol.r * 0.35f, accentCol.g * 0.35f, accentCol.b * 0.35f, 0.95f);
-        colors.pressedColor = accentCol;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+        colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
         colors.selectedColor = colors.highlightedColor;
         btn.colors = colors;
+
+        // Attach SciFiButton for smooth hover animation, glow border, and audio
+        var sciFiBtn = go.AddComponent<SciFiButton>();
+        var soBtn = new SerializedObject(sciFiBtn);
+        soBtn.FindProperty("targetBorderImage").objectReferenceValue = img;
+        soBtn.FindProperty("normalBorderColor").colorValue = new Color(accentCol.r * 0.75f, accentCol.g * 0.75f, accentCol.b * 0.75f, 0.7f);
+        soBtn.FindProperty("hoverBorderColor").colorValue = accentCol;
+        soBtn.ApplyModifiedProperties();
 
         // Label
         var lblGO = new GameObject("Label");

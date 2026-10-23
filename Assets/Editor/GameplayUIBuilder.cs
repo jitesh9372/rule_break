@@ -33,6 +33,17 @@ public static class GameplayUIBuilder
 
         canvasGO.AddComponent<GraphicRaycaster>();
 
+        // ── 0. Scanline Holographic Overlay ──────────────────────────────────
+        var scanlineGO = new GameObject("ScanlineOverlay");
+        scanlineGO.transform.SetParent(canvasGO.transform, false);
+        var srt = scanlineGO.AddComponent<RectTransform>();
+        srt.anchorMin = Vector2.zero;
+        srt.anchorMax = Vector2.one;
+        srt.sizeDelta = Vector2.zero;
+        var sRaw = scanlineGO.AddComponent<RawImage>();
+        sRaw.raycastTarget = false;
+        scanlineGO.AddComponent<ScanlineOverlay>();
+
         // ── 1. Top-Left: Level Title & Objective ──────────────────────────────
         var headerPanel = CreatePanel("HeaderPanel", canvasGO, new Color(0.04f, 0.07f, 0.14f, 0.85f),
             new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(25f, -25f), new Vector2(500f, 85f), new Vector2(0f, 1f));
@@ -43,9 +54,15 @@ public static class GameplayUIBuilder
         var objText = CreateText("ObjectiveText", headerPanel, $"OBJECTIVE: {objective}",
             new Vector2(18f, -48f), new Vector2(460f, 26f), new Color(0.75f, 0.82f, 0.95f), 15, TextAnchor.MiddleLeft, FontStyle.Normal, new Vector2(0f, 1f));
 
+        // ── Radar Objective Scanner (Top Center) ──────────────────────────────
+        var radar = CreateRadarDisplay("RadarScanner", canvasGO, new Vector2(0f, -20f));
+
         // ── 2. Bottom-Left: Energy Bar & Integrity ────────────────────────────
         var statusPanel = CreatePanel("StatusPanel", canvasGO, new Color(0.04f, 0.07f, 0.14f, 0.85f),
-            new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(25f, 25f), new Vector2(400f, 96f), new Vector2(0f, 0f));
+            new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(25f, 25f), new Vector2(540f, 100f), new Vector2(0f, 0f));
+
+        var nrgGauge = CreateCircularGauge("EnergyGauge", statusPanel, new Vector2(48f, 50f), new Vector2(74f, 74f), RuleBreakMasterBuilder.ColCyan, "ENERGY");
+        var intGauge = CreateCircularGauge("IntegrityGauge", statusPanel, new Vector2(136f, 50f), new Vector2(74f, 74f), RuleBreakMasterBuilder.ColGreen, "INTEGRITY");
 
         // Energy Slider
         var sliderGO = new GameObject("EnergySlider");
@@ -54,8 +71,8 @@ public static class GameplayUIBuilder
         sliderRT.pivot = new Vector2(0f, 0f);
         sliderRT.anchorMin = new Vector2(0f, 0f);
         sliderRT.anchorMax = new Vector2(0f, 0f);
-        sliderRT.anchoredPosition = new Vector2(18f, 48f);
-        sliderRT.sizeDelta = new Vector2(364f, 18f);
+        sliderRT.anchoredPosition = new Vector2(190f, 48f);
+        sliderRT.sizeDelta = new Vector2(330f, 18f);
 
         var sliderBg = sliderGO.AddComponent<Image>();
         sliderBg.color = new Color(0.08f, 0.12f, 0.2f, 0.95f);
@@ -83,10 +100,10 @@ public static class GameplayUIBuilder
         slider.value = 100f;
 
         var energyTxt = CreateText("EnergyText", statusPanel, "GLITCH ENERGY: 100 / 100",
-            new Vector2(18f, 70f), new Vector2(364f, 20f), RuleBreakMasterBuilder.ColCyan, 13, TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0f, 0f));
+            new Vector2(190f, 70f), new Vector2(330f, 20f), RuleBreakMasterBuilder.ColCyan, 13, TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0f, 0f));
 
         var integrityTxt = CreateText("IntegrityText", statusPanel, "REALITY INTEGRITY: 100%",
-            new Vector2(18f, 16f), new Vector2(364f, 24f), RuleBreakMasterBuilder.ColGreen, 15, TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0f, 0f));
+            new Vector2(190f, 16f), new Vector2(330f, 24f), RuleBreakMasterBuilder.ColGreen, 15, TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0f, 0f));
 
         // ── 3. Bottom-Right: Memory Fragments Counter ─────────────────────────
         var fragPanel = CreatePanel("FragPanel", canvasGO, new Color(0.04f, 0.07f, 0.14f, 0.85f),
@@ -97,29 +114,27 @@ public static class GameplayUIBuilder
 
         // ── 4. Top-Right: Ability Modules Bar ─────────────────────────────────
         var abilityPanel = CreatePanel("AbilityPanel", canvasGO, new Color(0.04f, 0.07f, 0.14f, 0.85f),
-            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-25f, -25f), new Vector2(480f, 85f), new Vector2(1f, 1f));
+            new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-25f, -25f), new Vector2(490f, 96f), new Vector2(1f, 1f));
 
-        var abG = CreateText("AbGText", abilityPanel, "[G] GRAV",
-            new Vector2(16f, -16f), new Vector2(95f, 26f), RuleBreakMasterBuilder.ColCyan, 14, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0f, 1f));
+        var indG = CreateAbilityIndicator("Ind_G", abilityPanel, new Vector2(45f, -8f),  "[G]", "GRAV", 10f, RuleBreakMasterBuilder.ColCyan);
+        var indT = CreateAbilityIndicator("Ind_T", abilityPanel, new Vector2(125f, -8f), "[T]", "FREEZE", 15f, RuleBreakMasterBuilder.ColCyan);
+        var indE = CreateAbilityIndicator("Ind_E", abilityPanel, new Vector2(205f, -8f), "[E]", "REALITY", 20f, RuleBreakMasterBuilder.ColViolet);
+        var indR = CreateAbilityIndicator("Ind_R", abilityPanel, new Vector2(285f, -8f), "[R]", "CORRUPT", 25f, RuleBreakMasterBuilder.ColMagenta);
 
-        var abT = CreateText("AbTText", abilityPanel, "[T] FREEZE",
-            new Vector2(120f, -16f), new Vector2(110f, 26f), RuleBreakMasterBuilder.ColCyan, 14, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0f, 1f));
-
-        var abE = CreateText("AbEText", abilityPanel, "[E] REALITY",
-            new Vector2(240f, -16f), new Vector2(110f, 26f), RuleBreakMasterBuilder.ColCyan, 14, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0f, 1f));
-
-        var abR = CreateText("AbRText", abilityPanel, "[R] CORRUPT",
-            new Vector2(360f, -16f), new Vector2(105f, 26f), RuleBreakMasterBuilder.ColMagenta, 14, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0f, 1f));
+        var abG = indG.GetComponentInChildren<Text>();
+        var abT = indT.GetComponentInChildren<Text>();
+        var abE = indE.GetComponentInChildren<Text>();
+        var abR = indR.GetComponentInChildren<Text>();
 
         var dimTxt = CreateText("DimensionText", abilityPanel, "REALITY: ALPHA",
-            new Vector2(-16f, -48f), new Vector2(440f, 24f), RuleBreakMasterBuilder.ColViolet, 15, TextAnchor.MiddleRight, FontStyle.Bold, new Vector2(1f, 1f));
+            new Vector2(345f, -24f), new Vector2(130f, 24f), RuleBreakMasterBuilder.ColViolet, 13, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0f, 1f));
 
         // ── 5. Center-Top: System Message Toast ───────────────────────────────
         var sysMsgPanel = CreatePanel("SystemMsgPanel", canvasGO, new Color(0.03f, 0.05f, 0.1f, 0.94f),
-            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -110f), new Vector2(650f, 64f), new Vector2(0.5f, 1f));
+            new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -155f), new Vector2(650f, 54f), new Vector2(0.5f, 1f));
 
         var sysMsgTxt = CreateText("SystemMsgText", sysMsgPanel, "SYSTEM LOG DETECTED",
-            new Vector2(0f, -32f), new Vector2(610f, 44f), RuleBreakMasterBuilder.ColCyan, 18, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
+            new Vector2(0f, -27f), new Vector2(610f, 40f), RuleBreakMasterBuilder.ColCyan, 17, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
         sysMsgPanel.SetActive(false);
 
         // ── 6. Center-Bottom: Interaction Prompt ──────────────────────────────
@@ -136,6 +151,9 @@ public static class GameplayUIBuilder
         soHud.FindProperty("energySlider").objectReferenceValue = slider;
         soHud.FindProperty("energyText").objectReferenceValue = energyTxt;
         soHud.FindProperty("integrityText").objectReferenceValue = integrityTxt;
+        soHud.FindProperty("energyGauge").objectReferenceValue = nrgGauge;
+        soHud.FindProperty("integrityGauge").objectReferenceValue = intGauge;
+        soHud.FindProperty("radarDisplay").objectReferenceValue = radar;
         soHud.FindProperty("fragmentText").objectReferenceValue = fragTxt;
         soHud.FindProperty("levelText").objectReferenceValue = lvlText;
         soHud.FindProperty("objectiveText").objectReferenceValue = objText;
@@ -148,6 +166,10 @@ public static class GameplayUIBuilder
         soHud.FindProperty("abilityTText").objectReferenceValue = abT;
         soHud.FindProperty("abilityEText").objectReferenceValue = abE;
         soHud.FindProperty("abilityRText").objectReferenceValue = abR;
+        soHud.FindProperty("abilityGIndicator").objectReferenceValue = indG;
+        soHud.FindProperty("abilityTIndicator").objectReferenceValue = indT;
+        soHud.FindProperty("abilityEIndicator").objectReferenceValue = indE;
+        soHud.FindProperty("abilityRIndicator").objectReferenceValue = indR;
         soHud.ApplyModifiedProperties();
 
         // ── 7. Pause Menu Panel ───────────────────────────────────────────────
@@ -379,7 +401,8 @@ public static class GameplayUIBuilder
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = size;
         var img = go.AddComponent<Image>();
-        img.color = col;
+        img.sprite = SciFiProceduralTextures.GetGlassPanel(64, 64, 2, col, new Color(col.r * 1.6f + 0.05f, col.g * 1.6f + 0.15f, col.b * 1.6f + 0.25f, 0.75f));
+        img.type = Image.Type.Sliced;
         return go;
     }
 
@@ -418,15 +441,26 @@ public static class GameplayUIBuilder
         rt.sizeDelta = size;
 
         var img = go.AddComponent<Image>();
-        img.color = new Color(accentCol.r * 0.15f, accentCol.g * 0.15f, accentCol.b * 0.15f, 0.9f);
+        img.sprite = SciFiProceduralTextures.GetGlassPanel(64, 64, 2,
+            new Color(accentCol.r * 0.12f, accentCol.g * 0.12f, accentCol.b * 0.12f, 0.92f),
+            new Color(accentCol.r * 0.75f, accentCol.g * 0.75f, accentCol.b * 0.75f, 0.7f));
+        img.type = Image.Type.Sliced;
 
         var btn = go.AddComponent<Button>();
         var colors = btn.colors;
-        colors.normalColor = img.color;
-        colors.highlightedColor = new Color(accentCol.r * 0.35f, accentCol.g * 0.35f, accentCol.b * 0.35f, 0.95f);
-        colors.pressedColor = accentCol;
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+        colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
         colors.selectedColor = colors.highlightedColor;
         btn.colors = colors;
+
+        // Attach SciFiButton for smooth hover animation, glow border, and audio
+        var sciFiBtn = go.AddComponent<SciFiButton>();
+        var soBtn = new SerializedObject(sciFiBtn);
+        soBtn.FindProperty("targetBorderImage").objectReferenceValue = img;
+        soBtn.FindProperty("normalBorderColor").colorValue = new Color(accentCol.r * 0.75f, accentCol.g * 0.75f, accentCol.b * 0.75f, 0.7f);
+        soBtn.FindProperty("hoverBorderColor").colorValue = accentCol;
+        soBtn.ApplyModifiedProperties();
 
         // Label
         var lblGO = new GameObject("Label");
@@ -445,5 +479,153 @@ public static class GameplayUIBuilder
         txt.font = DefaultFont;
 
         return btn;
+    }
+
+    private static CircularGauge CreateCircularGauge(string name, GameObject parent, Vector2 anchoredPos, Vector2 size, Color primaryColor, string labelStr)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent.transform, false);
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 0.5f);
+        rt.anchorMax = new Vector2(0f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = size;
+
+        // Outer rotating ring
+        var ringGO = new GameObject("OuterRing");
+        ringGO.transform.SetParent(go.transform, false);
+        var ringRT = ringGO.AddComponent<RectTransform>();
+        ringRT.anchorMin = Vector2.zero;
+        ringRT.anchorMax = Vector2.one;
+        ringRT.sizeDelta = Vector2.zero;
+        var ringImg = ringGO.AddComponent<Image>();
+        ringImg.sprite = SciFiProceduralTextures.GetSegmentedRing(128, 16, 6f, new Color(primaryColor.r, primaryColor.g, primaryColor.b, 0.55f));
+        ringImg.raycastTarget = false;
+
+        // Radial fill image
+        var fillGO = new GameObject("RadialFill");
+        fillGO.transform.SetParent(go.transform, false);
+        var fillRT = fillGO.AddComponent<RectTransform>();
+        fillRT.anchorMin = new Vector2(0.08f, 0.08f);
+        fillRT.anchorMax = new Vector2(0.92f, 0.92f);
+        fillRT.sizeDelta = Vector2.zero;
+        var fillImg = fillGO.AddComponent<Image>();
+        fillImg.sprite = SciFiProceduralTextures.GetHollowRing(128, 0.72f, Color.white);
+        fillImg.type = Image.Type.Filled;
+        fillImg.fillMethod = Image.FillMethod.Radial360;
+        fillImg.fillOrigin = (int)Image.Origin360.Top;
+        fillImg.fillClockwise = true;
+        fillImg.color = primaryColor;
+        fillImg.raycastTarget = false;
+
+        // Numeric text
+        var numTxt = CreateText("ValueText", go, "100", Vector2.zero, new Vector2(size.x, 24f), primaryColor, 15, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
+
+        // Label text
+        var lblTxt = CreateText("LabelText", go, labelStr, new Vector2(0f, -size.y * 0.42f), new Vector2(size.x, 16f), new Color(0.7f, 0.8f, 0.95f), 10, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
+
+        var gauge = go.AddComponent<CircularGauge>();
+        var so = new SerializedObject(gauge);
+        so.FindProperty("radialFillImage").objectReferenceValue = fillImg;
+        so.FindProperty("outerRingTransform").objectReferenceValue = ringRT;
+        so.FindProperty("valueText").objectReferenceValue = numTxt;
+        so.FindProperty("labelText").objectReferenceValue = lblTxt;
+        so.FindProperty("normalColor").colorValue = primaryColor;
+        so.ApplyModifiedProperties();
+
+        return gauge;
+    }
+
+    private static RadialAbilityIndicator CreateAbilityIndicator(string name, GameObject parent, Vector2 anchoredPos, string key, string label, float cost, Color col)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent.transform, false);
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 1f);
+        rt.anchorMax = new Vector2(0f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = new Vector2(68f, 72f);
+
+        // Ring image
+        var ringGO = new GameObject("Ring");
+        ringGO.transform.SetParent(go.transform, false);
+        var ringRT = ringGO.AddComponent<RectTransform>();
+        ringRT.anchorMin = new Vector2(0.12f, 0.28f);
+        ringRT.anchorMax = new Vector2(0.88f, 0.95f);
+        ringRT.sizeDelta = Vector2.zero;
+        var ringImg = ringGO.AddComponent<Image>();
+        ringImg.sprite = SciFiProceduralTextures.GetHollowRing(64, 0.75f, col);
+        ringImg.color = col;
+        ringImg.raycastTarget = false;
+
+        // Key text inside ring
+        var kTxt = CreateText("KeyText", ringGO, key, Vector2.zero, new Vector2(40f, 22f), col, 14, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
+
+        // Name text
+        var nTxt = CreateText("NameText", go, label, new Vector2(0f, -54f), new Vector2(68f, 16f), new Color(0.8f, 0.88f, 1f), 10, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
+
+        // Cost text
+        var cTxt = CreateText("CostText", go, $"{cost}E", new Vector2(0f, -68f), new Vector2(68f, 14f), new Color(0.6f, 0.75f, 0.95f), 9, TextAnchor.MiddleCenter, FontStyle.Normal, new Vector2(0.5f, 0.5f));
+
+        var indicator = go.AddComponent<RadialAbilityIndicator>();
+        var so = new SerializedObject(indicator);
+        so.FindProperty("outerRing").objectReferenceValue = ringImg;
+        so.FindProperty("keyText").objectReferenceValue = kTxt;
+        so.FindProperty("nameText").objectReferenceValue = nTxt;
+        so.FindProperty("costText").objectReferenceValue = cTxt;
+        so.FindProperty("energyCost").floatValue = cost;
+        so.FindProperty("activeColor").colorValue = col;
+        so.ApplyModifiedProperties();
+
+        return indicator;
+    }
+
+    private static RadarObjectiveDisplay CreateRadarDisplay(string name, GameObject parent, Vector2 anchoredPos)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(parent.transform, false);
+        var rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 1f);
+        rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = new Vector2(130f, 130f);
+
+        var bgImg = go.AddComponent<Image>();
+        bgImg.sprite = SciFiProceduralTextures.GetRadarGrid(128, new Color(0f, 0.9f, 1f, 0.45f));
+        bgImg.raycastTarget = false;
+
+        // Blip Container
+        var blipGO = new GameObject("BlipContainer");
+        blipGO.transform.SetParent(go.transform, false);
+        var blipRT = blipGO.AddComponent<RectTransform>();
+        blipRT.anchorMin = new Vector2(0.08f, 0.08f);
+        blipRT.anchorMax = new Vector2(0.92f, 0.92f);
+        blipRT.sizeDelta = Vector2.zero;
+
+        // Sweep Beam
+        var sweepGO = new GameObject("SweepBeam");
+        sweepGO.transform.SetParent(go.transform, false);
+        var sweepRT = sweepGO.AddComponent<RectTransform>();
+        sweepRT.anchorMin = new Vector2(0.08f, 0.08f);
+        sweepRT.anchorMax = new Vector2(0.92f, 0.92f);
+        sweepRT.sizeDelta = Vector2.zero;
+        var sweepImg = sweepGO.AddComponent<Image>();
+        sweepImg.sprite = SciFiProceduralTextures.GetRadarSweep(128, 55f, new Color(0f, 0.95f, 1f, 0.4f));
+        sweepImg.raycastTarget = false;
+
+        // Target readout
+        var readTxt = CreateText("DistanceText", go, "SEARCHING...", new Vector2(0f, -135f), new Vector2(160f, 20f), RuleBreakMasterBuilder.ColCyan, 12, TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.5f, 0.5f));
+
+        var radar = go.AddComponent<RadarObjectiveDisplay>();
+        var so = new SerializedObject(radar);
+        so.FindProperty("sweepBeamTransform").objectReferenceValue = sweepRT;
+        so.FindProperty("blipContainer").objectReferenceValue = blipRT;
+        so.FindProperty("distanceReadoutText").objectReferenceValue = readTxt;
+        so.ApplyModifiedProperties();
+
+        return radar;
     }
 }
